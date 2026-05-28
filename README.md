@@ -214,6 +214,22 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 
 Os testes cobrem controller REST, validacao, service, repository JPA com H2 e o servidor gRPC.
 
+## Notification Service
+
+Rota adicionada para consulta de notificacoes:
+
+| Metodo | Rota | Descricao |
+| --- | --- | --- |
+| GET | `/notifications/user/{userId}` | Lista notificacoes enviadas para o usuario |
+
+Contrato RabbitMQ consumido pelo `notification-service`:
+
+```text
+Exchange: recommendation.exchange
+Routing key: recommendation.created
+Fila: notification.queue
+```
+
 ## Proximos passos
 
 1. Implementar as regras de negocio dos demais microsservicos.

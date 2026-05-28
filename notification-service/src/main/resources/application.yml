@@ -21,6 +21,9 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:streaming}
     password: ${RABBITMQ_PASSWORD:streaming}
+  sql:
+    init:
+      mode: always
 
 eureka:
   client:
