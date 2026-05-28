@@ -41,7 +41,7 @@ Cliente ou Postman acessa o `api-gateway`, que roteia as chamadas REST para os m
 | streaming-service | 8083 |
 | recommendation-service | 8084 |
 | notification-service | 8085 |
-| PostgreSQL | 5432 |
+| PostgreSQL | 5433 |
 | RabbitMQ | 5672 |
 | RabbitMQ Management | 15672 |
 
@@ -90,6 +90,8 @@ Depois disso, o Eureka Dashboard fica disponivel em http://localhost:8761.
 
 Depois, em terminais separados, inicie os demais:
 
+Como o PostgreSQL do Docker Compose fica exposto em `localhost:5433`, execute os servicos que usam banco com `POSTGRES_PORT=5433`.
+
 ```bash
 cd api-gateway
 mvn spring-boot:run
@@ -97,27 +99,27 @@ mvn spring-boot:run
 
 ```bash
 cd user-service
-mvn spring-boot:run
+POSTGRES_PORT=5433 mvn spring-boot:run
 ```
 
 ```bash
 cd catalog-service
-mvn spring-boot:run
+POSTGRES_PORT=5433 mvn spring-boot:run
 ```
 
 ```bash
 cd streaming-service
-mvn spring-boot:run
+POSTGRES_PORT=5433 mvn spring-boot:run
 ```
 
 ```bash
 cd recommendation-service
-mvn spring-boot:run
+POSTGRES_PORT=5433 mvn spring-boot:run
 ```
 
 ```bash
 cd notification-service
-mvn spring-boot:run
+POSTGRES_PORT=5433 mvn spring-boot:run
 ```
 
 ## Testando os endpoints de health
@@ -141,6 +143,7 @@ curl http://localhost:8080/users/health
 curl http://localhost:8080/contents/health
 curl http://localhost:8080/streaming/health
 curl http://localhost:8080/recommendations/health
+curl http://localhost:8080/notifications/health
 ```
 
 ## Proximos passos
