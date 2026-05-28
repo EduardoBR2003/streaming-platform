@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HealthController {
 
+    // Endpoint simples para verificar se o catalog-service esta de pe.
     @GetMapping({"/health", "/contents/health"})
     public Map<String, String> health() {
         return Map.of(
