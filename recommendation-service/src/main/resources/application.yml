@@ -5,7 +5,7 @@ spring:
   application:
     name: recommendation-service
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/recommendation_db
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/recommendation_db
     username: ${POSTGRES_USER:streaming}
     password: ${POSTGRES_PASSWORD:streaming}
     driver-class-name: org.postgresql.Driver
