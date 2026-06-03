@@ -2,7 +2,7 @@
 
 Monorepo inicial para uma plataforma de streaming baseada em microsservicos, criado para a disciplina de Sistemas Distribuidos.
 
-Nesta etapa o projeto contem a estrutura base dos microsservicos e a primeira implementacao de negocio do `catalog-service`, com endpoints REST, persistencia em PostgreSQL e servidor gRPC para consulta de conteudo.
+Nesta etapa o projeto contem a estrutura base dos microsservicos e implementacoes de negocio no `user-service` e no `catalog-service`, com endpoints REST, persistencia em PostgreSQL e servidor gRPC para consulta de conteudo.
 
 ## Arquitetura proposta
 
@@ -12,7 +12,7 @@ Cliente ou Postman acessa o `api-gateway`, que roteia as chamadas REST para os m
 
 - `discovery-server`: Eureka Server para registro e descoberta dos servicos.
 - `api-gateway`: entrada unica da plataforma com Spring Cloud Gateway.
-- `user-service`: base para cadastro e consulta de usuarios.
+- `user-service`: cadastro, consulta, atualizacao e validacao de usuarios por REST.
 - `catalog-service`: cadastro e consulta de conteudos por REST, alem de consulta por gRPC.
 - `streaming-service`: base para simulacao de reproducao.
 - `recommendation-service`: base para processamento de recomendacoes.
@@ -147,6 +147,55 @@ curl http://localhost:8080/recommendations/health
 curl http://localhost:8080/notifications/health
 ```
 
+## User Service
+
+O `user-service` e a parte do Integrante 1. Ele persiste usuarios na tabela `users` do banco `user_db`, registra o servico no Eureka e expoe a API REST abaixo.
+
+| Metodo | Rota | Descricao |
+| --- | --- | --- |
+| POST | `/users` | Cadastra usuario |
+| GET | `/users` | Lista todos os usuarios |
+| GET | `/users/{id}` | Busca usuario por ID |
+| GET | `/users/{id}/exists` | Valida se o usuario existe |
+| PUT | `/users/{id}` | Atualiza usuario |
+
+Exemplo de cadastro:
+
+```bash
+curl -X POST http://localhost:8081/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ana Silva",
+    "email": "ana@email.com",
+    "plan": "PREMIUM"
+  }'
+```
+
+Exemplos de consulta e atualizacao:
+
+```bash
+curl http://localhost:8081/users
+curl http://localhost:8081/users/1
+curl http://localhost:8081/users/1/exists
+
+curl -X PUT http://localhost:8081/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ana Souza",
+    "email": "ana@email.com",
+    "plan": "FAMILY"
+  }'
+```
+
+As mesmas rotas REST tambem podem ser acessadas pelo API Gateway quando ele estiver rodando:
+
+```bash
+curl http://localhost:8080/users
+curl http://localhost:8080/users/1
+```
+
+Evidencia textual da implementacao: `docs/evidencias/user-service/rest.md`.
+
 ## Catalog Service
 
 O `catalog-service` e a parte do Integrante 2. Ele persiste conteudos na tabela `contents` do banco `catalog_db` e expoe a API REST abaixo.
@@ -202,6 +251,17 @@ grpcurl -plaintext \
 
 A porta gRPC padrao e `9090`, podendo ser alterada pela variavel `CATALOG_GRPC_PORT`.
 
+## Testes do User Service
+
+Para rodar os testes da sua parte:
+
+```bash
+cd user-service
+mvn test
+```
+
+Os testes cobrem controller REST, validacao, regras do service e repository JPA com H2.
+
 ## Testes do Catalog Service
 
 No Windows deste ambiente, o Maven esta disponivel pelo cache do usuario. Para rodar os testes:
@@ -232,10 +292,7 @@ Fila: notification.queue
 
 ## Proximos passos
 
-1. Implementar as regras de negocio dos demais microsservicos.
-2. Implementar o cliente gRPC no `streaming-service` para chamar o `catalog-service`.
-3. Configurar exchanges, filas e eventos RabbitMQ.
-4. Publicar o evento `content.viewed` no `streaming-service`.
-5. Consumir eventos no `recommendation-service`.
-6. Simular notificacoes no `notification-service`.
-7. Adicionar prints finais das integracoes completas.
+1. Capturar prints finais do cadastro, consulta e atualizacao de usuarios.
+2. Finalizar evidencias das integracoes gRPC e RabbitMQ.
+3. Testar o fluxo completo pelo API Gateway.
+4. Adicionar prints finais das integracoes completas.
