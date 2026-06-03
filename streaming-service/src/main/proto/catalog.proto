@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+// Pacote Java onde as classes serão geradas
+option java_multiple_files = true;
+option java_package = "com.streaming.grpc";
+option java_outer_classname = "CatalogProto";
+
+package catalog;
+
+// Serviço gRPC exposto pelo catalog-service (Integrante 2)
+service CatalogService {
+  rpc GetContent (ContentRequest) returns (ContentResponse);
+}
+
+// Requisição: id do conteúdo que queremos consultar
+message ContentRequest {
+  int64 content_id = 1;
+}
+
+// Resposta: dados do conteúdo retornados pelo catalog-service
+message ContentResponse {
+  int64 id          = 1;
+  string title      = 2;
+  string category   = 3;
+  string description = 4;
+  bool found        = 5;  // false se o conteúdo não existir
+}
