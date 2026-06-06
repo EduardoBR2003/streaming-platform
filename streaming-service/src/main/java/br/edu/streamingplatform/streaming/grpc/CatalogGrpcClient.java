@@ -1,8 +1,8 @@
 package br.edu.streamingplatform.streaming.grpc;
 
-import com.streaming.grpc.CatalogServiceGrpc;
-import com.streaming.grpc.ContentRequest;
-import com.streaming.grpc.ContentResponse;
+import br.edu.streamingplatform.catalog.grpc.proto.CatalogContentServiceGrpc;
+import br.edu.streamingplatform.catalog.grpc.proto.ContentResponse;
+import br.edu.streamingplatform.catalog.grpc.proto.GetContentByIdRequest;
 import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -13,20 +13,20 @@ import org.springframework.stereotype.Service;
 public class CatalogGrpcClient {
 
     @GrpcClient("catalog-service")
-    private CatalogServiceGrpc.CatalogServiceBlockingStub catalogServiceStub;
+    private CatalogContentServiceGrpc.CatalogContentServiceBlockingStub catalogServiceStub;
 
     public ContentResponse getContentById(Long contentId) {
         log.info("[gRPC] Querying catalog-service | contentId={}", contentId);
 
         try {
-            ContentRequest request = ContentRequest.newBuilder()
+            GetContentByIdRequest request = GetContentByIdRequest.newBuilder()
                     .setContentId(contentId)
                     .build();
 
-            ContentResponse response = catalogServiceStub.getContent(request);
+            ContentResponse response = catalogServiceStub.getContentById(request);
 
-            log.info("[gRPC] Response received from catalog-service | found={}, title='{}', category='{}'",
-                    response.getFound(), response.getTitle(), response.getCategory());
+            log.info("[gRPC] Response received from catalog-service | title='{}', category='{}'",
+                    response.getTitle(), response.getCategory());
 
             return response;
 
