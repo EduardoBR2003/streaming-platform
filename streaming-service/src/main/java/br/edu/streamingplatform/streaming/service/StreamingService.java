@@ -1,6 +1,6 @@
 package br.edu.streamingplatform.streaming.service;
 
-import com.streaming.grpc.ContentResponse;
+import br.edu.streamingplatform.catalog.grpc.proto.ContentResponse;
 import br.edu.streamingplatform.streaming.dto.ContentViewedEvent;
 import br.edu.streamingplatform.streaming.dto.WatchRequest;
 import br.edu.streamingplatform.streaming.dto.WatchResponse;
@@ -29,11 +29,6 @@ public class StreamingService {
         log.info("Processing watch request | userId={}, contentId={}", request.getUserId(), request.getContentId());
 
         ContentResponse content = catalogGrpcClient.getContentById(request.getContentId());
-
-        if (!content.getFound()) {
-            log.warn("Content not found | contentId={}", request.getContentId());
-            throw new RuntimeException("Content not found with id: " + request.getContentId());
-        }
 
         Visualizacao visualizacao = Visualizacao.builder()
                 .userId(request.getUserId())

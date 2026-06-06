@@ -47,7 +47,7 @@ eureka:
 grpc:
   client:
     catalog-service:
-      address: discovery:///catalog-service   # Resolução via Eureka
+      address: ${CATALOG_GRPC_ADDRESS:static://localhost:9090}
       negotiation-type: plaintext             # Sem TLS (ambiente interno)
 
 # ─── Actuator (health check p/ Eureka) ─────────────────────────────────────────
