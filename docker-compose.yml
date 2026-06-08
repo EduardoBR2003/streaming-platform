@@ -16,6 +16,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -31,6 +32,160 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+
+  discovery-server:
+    build:
+      context: ./discovery-server
+    container_name: streaming-discovery-server
+    environment:
+      EUREKA_HOST: discovery-server
+      EUREKA_INSTANCE_HOSTNAME: discovery-server
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: streaming-user-service
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: streaming
+      POSTGRES_PASSWORD: streaming
+      EUREKA_HOST: discovery-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+    container_name: streaming-catalog-service
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: streaming
+      POSTGRES_PASSWORD: streaming
+      EUREKA_HOST: discovery-server
+      CATALOG_GRPC_PORT: 9090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+      - "9090:9090"
+
+  streaming-service:
+    build:
+      context: ./streaming-service
+    container_name: streaming-streaming-service
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: streaming_db
+      DB_USER: streaming
+      DB_PASSWORD: streaming
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: streaming
+      RABBITMQ_PASSWORD: streaming
+      EUREKA_HOST: discovery-server
+      EUREKA_PORT: 8761
+      CATALOG_GRPC_ADDRESS: static://catalog-service:9090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      catalog-service:
+        condition: service_started
+    ports:
+      - "8083:8083"
+
+  recommendation-service:
+    build:
+      context: ./recommendation-service
+    container_name: streaming-recommendation-service
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: streaming
+      POSTGRES_PASSWORD: streaming
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: streaming
+      RABBITMQ_PASSWORD: streaming
+      EUREKA_HOST: discovery-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+
+  notification-service:
+    build:
+      context: ./notification-service
+    container_name: streaming-notification-service
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: streaming
+      POSTGRES_PASSWORD: streaming
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: streaming
+      RABBITMQ_PASSWORD: streaming
+      EUREKA_HOST: discovery-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: streaming-api-gateway
+    environment:
+      EUREKA_HOST: discovery-server
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+      streaming-service:
+        condition: service_started
+      recommendation-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    ports:
+      - "8080:8080"
 
 volumes:
   postgres_data:
