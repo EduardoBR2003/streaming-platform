@@ -1,30 +1,65 @@
 server:
-  port: 8083
+  port: ${SERVER_PORT:8083}
 
 spring:
   application:
     name: streaming-service
+
+  # ─── PostgreSQL ────────────────────────────────────────────────────────────
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/streaming_db
-    username: ${POSTGRES_USER:streaming}
-    password: ${POSTGRES_PASSWORD:streaming}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:streaming_platform}
+    username: ${DB_USER:streaming}
+    password: ${DB_PASSWORD:streaming}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
-      ddl-auto: none
-    open-in-view: false
+      ddl-auto: update          # Cria/atualiza tabelas automaticamente
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # ─── RabbitMQ ──────────────────────────────────────────────────────────────
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:streaming}
     password: ${RABBITMQ_PASSWORD:streaming}
 
+  # ─── Jackson: serialização de LocalDateTime ────────────────────────────────
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+# ─── Eureka Client ─────────────────────────────────────────────────────────────
 eureka:
   client:
     service-url:
-      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true
+
+# ─── gRPC Client (chama o catalog-service via Eureka) ──────────────────────────
+grpc:
+  client:
+    catalog-service:
+      address: ${CATALOG_GRPC_ADDRESS:static://localhost:9090}
+      negotiation-type: plaintext             # Sem TLS (ambiente interno)
+
+# ─── Actuator (health check p/ Eureka) ─────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+
+# ─── Logging ───────────────────────────────────────────────────────────────────
+logging:
+  level:
+    br.edu.streamingplatform.streaming: DEBUG
+    io.grpc: INFO
+    org.springframework.amqp: DEBUG

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package streaming.catalog;
+
+option java_multiple_files = true;
+option java_package = "br.edu.streamingplatform.catalog.grpc.proto";
+option java_outer_classname = "CatalogProto";
+
+// Servico usado pelo streaming-service para validar e obter dados do conteudo.
+service CatalogContentService {
+  rpc GetContentById (GetContentByIdRequest) returns (ContentResponse);
+}
+
+message GetContentByIdRequest {
+  // ID do conteudo que o streaming-service quer reproduzir.
+  int64 content_id = 1;
+}
+
+message ContentResponse {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  // Categoria usada depois no evento content.viewed e nas recomendacoes.
+  string category = 4;
+  string type = 5;
+  int32 duration_minutes = 6;
+}
